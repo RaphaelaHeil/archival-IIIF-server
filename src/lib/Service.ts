@@ -29,6 +29,10 @@ export const allServices: Service[] = [{
     }, {
         name: 'ecodices-index',
         loadService: async () => (await import('../service/ecodices/index.js')).default
+    },
+    {
+        name: 'lm-index',
+        loadService: async () => (await import('../service/lm/index.js')).default
     }]
 }, {
     type: 'text',
