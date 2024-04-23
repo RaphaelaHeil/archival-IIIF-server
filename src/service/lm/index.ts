@@ -76,7 +76,13 @@ async function reassignRootItems(collectionPath: string, customStructMapId:strin
 
     let results:CollectionProcessingResult[] = [];
 
-    for (const reportNode of rootCustom.find<Element>(`//mets:div[@TYPE="report"]`, ns)){
+    const reportNodes = rootCustom.find<Element>(`//mets:div[@TYPE="report"]`, ns);
+    if (!reportNodes || !reportNodes.length){
+        logger.warn(`Could not find report-level information, continuing without restructuring of data.`);
+        return [{rootItem, childItems, textItems}];
+    }
+
+    for (const reportNode of reportNodes){
         const id = reportNode.attr('ID')?.value() || null;
         if (!id){
             throw new Error(`Custom StructMap is missing an ID for a report.`);
