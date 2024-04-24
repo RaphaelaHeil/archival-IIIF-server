@@ -185,13 +185,18 @@ function createDirectoryMetadata(mets: Element): Map<string, Metadata> {
         if (!dmdId)
             throw new Error('A dmdSec is missing an ID');
 
-        const premisObj = node.get<Element>('./mets:mdWrap/mets:xmlData/premisv3:object', ns);
+        const mdWrap = node.get<Element>('./mets:mdWrap', ns);
+        if (mdWrap){
+            const mdType = mdWrap.attr('MDTYPE')?.value();
+            if (mdType && mdType == 'PREMIS:OBJECT'){
+                const premisObj = node.get<Element>('./mets:mdWrap/mets:xmlData/premisv3:object', ns);
         if (!premisObj)
             throw new Error(`No premis object found for DMD id ${dmdId}`);
 
         metadata.set(dmdId, getPremisMetadata(dmdId, premisObj, 'premisv3'));
+            }
+        }
     }
-
     return metadata;
 }
 
