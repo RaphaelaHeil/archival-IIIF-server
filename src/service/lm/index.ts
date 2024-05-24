@@ -94,26 +94,40 @@ async function reassignRootItems(collectionPath: string, customStructMapId: stri
         let selectedChildItems: Item[] = [];
         let selectedTextItems: TextItem[] = [];
 
-        for (const fptrElem of reportNode.find<Element>(`./mets:div[@TYPE="page"]/mets:fptr`, ns)) {
-            const fileId = fptrElem.attr('FILEID')?.value() as string;
-            const internalId = fileId.substring(5);
-            const foundChild = childItems.find(child => child.id == internalId);
-            if (foundChild) {
-                foundChild.parent_id = id;
-                foundChild.collection_id = id;
-                selectedChildItems.push(foundChild);
-                const index = childItems.indexOf(foundChild);
-                if (index > -1) {
-                    childItems.splice(index, 1);
-                }
-            } else {
-                const foundText = textItems.find(text => text.id == internalId);
-                if (foundText) {
-                    foundText.collectionId = id;
-                    selectedTextItems.push(foundText);
-                    const index = textItems.indexOf(foundText);
+
+        for (const pageElem of reportNode.find<Element>(`./mets:div[@TYPE="page"]`, ns)){
+            let customIDAttr = pageElem.attr("ID")?.value();
+            
+            for(const fptrElem of pageElem.find<Element>('./mets:fptr',ns)){
+                const fileId = fptrElem.attr('FILEID')?.value() as string;
+                const internalId = fileId.substring(5);
+                const foundChild = childItems.find(child => child.id == internalId);
+                if (foundChild) {
+                    foundChild.parent_id = id;
+                    foundChild.collection_id = id;
+                    
+                    if (customIDAttr){
+                        foundChild.id = customIDAttr;
+                    }
+
+                    selectedChildItems.push(foundChild);
+                    const index = childItems.indexOf(foundChild);
                     if (index > -1) {
-                        textItems.slice(index, 1);
+                        childItems.splice(index, 1);
+                    }
+                } else {
+                    const foundText = textItems.find(text => text.id == internalId);
+                    if (foundText) {
+                        foundText.collectionId = id;
+                        if (customIDAttr){
+                            foundText.itemId = customIDAttr;
+                        }
+                        
+                        selectedTextItems.push(foundText);
+                        const index = textItems.indexOf(foundText);
+                        if (index > -1) {
+                            textItems.slice(index, 1);
+                        }
                     }
                 }
             }
@@ -125,7 +139,6 @@ async function reassignRootItems(collectionPath: string, customStructMapId: stri
             type: 'root',
             label: label
         } as MinimalItem);
-
 
         results.push({ rootItem, childItems: selectedChildItems, textItems: selectedTextItems })
 
